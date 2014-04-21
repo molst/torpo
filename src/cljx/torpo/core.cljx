@@ -107,6 +107,7 @@
   `(let [result# (do ~@forms)]
      (if (and (map? ~val) (map? result#)) (merge ~val result#) result#)))
 
+#+clj ;;merge-result is a macro and must be moved in order to work in clojurescript
 (defn merge-in "Merges 'val' into 'm'."
   [m location val] (update-in m location #(merge-result % val)))
 
@@ -117,3 +118,6 @@
 (defn reduce-calls "Calls each function in 'functions'. Each function takes the accumulated combined result as the first argument, and, if present, additional arguments according to 'opargs', and returns the resulting object."
   [functions init-obj & opargs]
   (reduce (fn [acc f] (apply (partial f acc) opargs)) init-obj (distinct functions)))
+
+(defn cycle-drop "Cycles the seq 's', drops 'n' items, and returns a seq of the same length as 's' with retained order from the cycle and drop operations."
+  [n s] (drop n (take (+ n (count s)) (cycle s))))
