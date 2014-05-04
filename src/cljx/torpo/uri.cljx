@@ -52,16 +52,17 @@
 (defn parse [uri-str]
   (when uri-str
     (let [[remainder1 fragment] (clojure.string/split uri-str #"#")
-          [scheme remainder2] (when remainder1 (clojure.string/split remainder1 #"://"))
+          [scheme remainder2] (when remainder1 (clojure.string/split remainder1 #":" 2))
           remainder3 (or remainder2 scheme) ;;if no remainder is found the only way this could be a valid uri is if the source str (now "scheme") represents a "protocol-relative" uri
-          [path params] (when remainder3 (clojure.string/split remainder3 #"\?")) ;;the first sectoin of path can be a hostname in case of "http" or "https"
+          [path params] (when remainder3 (clojure.string/split remainder3 #"\?")) ;;the first section of path can be a hostname in case of "http" or "https"
           param-map (when params (apply hash-map (apply concat (for [ppair (clojure.string/split params #"&")]
                                                                  (let [[k v] (clojure.string/split ppair #"=")] [(keyword k) v])))))]
       (clojure.core/merge
        (if (and scheme remainder2) ;;when we've got an explicit scheme...
          (clojure.core/merge {:scheme scheme}
                              (when (or (= scheme "http") (= scheme "https"))
-                               (let [[hostname-and-port & rest-path] (clojure.string/split path #"/") ;;in case of http/https the path is always considered relative, because there is a host before
+                               (let [[nada p2] (clojure.string/split path #"//") ;;just remove the double slash
+                                     [hostname-and-port & rest-path] (clojure.string/split p2 #"/") ;;in case of http/https the path is always considered relative, because there is a host before
                                      [hostname port] (clojure.string/split hostname-and-port #":")]
                                  (clojure.core/merge {} (when (seq hostname) {:hostname hostname})
                                                      (when port {:port (pl/parse-int port)})

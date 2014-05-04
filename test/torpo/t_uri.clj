@@ -29,6 +29,7 @@
 (fact "parse simple relative path with slash" (uri/parse simple-relative-path-with-slash) => {:path ["A"]})
 (fact "get port" (uri/port (uri/parse fat-uri)) => 44)
 (fact "get defualt http port" (uri/port (uri/parse simple-http-uri)) => 80)
+(fact "parse javascript href" (uri/parse "javascript:void(0);") => {:scheme "javascript"}) ;;No support for parsing this scheme further yet
 
 (defn parse-uri-roundtrip [uri-str] (-> uri-str (uri/parse) (uri/make-uri-str)))
 (fact "parse roundtrip simle http uri"      (parse-uri-roundtrip simple-http-uri) => simple-http-uri)
