@@ -35,6 +35,7 @@
 (fact "parse roundtrip simle http uri"      (parse-uri-roundtrip simple-http-uri) => simple-http-uri)
 (fact "parse roundtrip one-param"           (parse-uri-roundtrip one-param) => one-param)
 (fact "parse roundtrip simle aboslute path" (parse-uri-roundtrip simple-absolut-path) => simple-absolut-path)
+(fact "parse roundtrip javascript"          (parse-uri-roundtrip "javascript:void(0);") => "javascript:") ;;No support for parsing this scheme further yet
 
 (fact "merge" (uri/merge (uri/parse fat-uri) (uri/parse fat-uri2)) =>
       {:fragment "fraggel" :hostname "hoisu" :params {:p1 "v1" :p2 "v2" :q1 "v1" :q2 "v2"} :path ["A" "B"] :port 66 :scheme "http"})
