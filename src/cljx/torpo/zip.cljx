@@ -1,5 +1,6 @@
 (ns torpo.zip
-  (:require [clojure.zip :as z]))
+  (:require [clojure.zip :as z]
+            [torpo.platform :as pl]))
 
 (defn loc-path "Returns the locations leading to 'loc' from the root of 'loc'."
   [loc] (reverse (take-while #(not (nil? %)) (iterate z/up loc))))
@@ -10,18 +11,11 @@
 (defn child-locs "Returns a seq of child locations of 'loc'."
   [loc] (take-while #(not (nil? %)) (iterate z/right (z/down loc))))
 
-;;not used
-#_(defn remove-children "Returns a new 'loc' with all children removed."
-  [loc] (let [clocs (child-locs loc)
-              first-child (first clocs)]
-          (if first-child
-            (first (take (count clocs) (iterate z/remove first-child)))
-            loc)))
+(defn- in-path? "If 'target-loc' is in the path of 'loc', returns 'target-loc', otherwise nil. Uses function 'nodes-equal?' to determine equality of nodes. Note that it returns nil also if (nodes-equal? loc target-loc)."
+  [loc target-loc nodes-equal?]
+  (first (drop-while #(and % (not (nodes-equal? (z/node %) (z/node target-loc)))) (iterate z/up loc))))
 
-;;not used
-#_(defn append-children "Returns a new 'loc' with 'child-items' appended."
-  [loc child-items] (reduce (fn [parent item] (z/append-child parent item)) loc child-items))
-
-;;not used
-#_(defn reset-children "Returns a new 'loc' with reset children."
-  [loc child-items] (-> (remove-children loc) (append-children child-items)))
+(defn edit-children "Recursively edits all 'loc's children using function 'f', which takes a node."
+  [loc f nodes-equal?]
+  (-> (drop-while #(in-path? % loc nodes-equal?) (iterate (fn [next-loc] (-> next-loc #_(z/edit next-loc f) z/next)) (z/next loc)))
+      first z/prev (in-path? loc nodes-equal?)))
