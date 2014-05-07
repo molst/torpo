@@ -1,4 +1,5 @@
-(ns torpo.platform)
+(ns torpo.platform
+  (:refer-clojure :exclude [time]))
 
 (defn parse-int [int-str] (#+clj Integer/parseInt #+cljs js/parseInt int-str))
 
