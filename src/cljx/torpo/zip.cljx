@@ -1,4 +1,5 @@
 (ns torpo.zip
+  (:refer-clojure :exclude [time])
   (:require [clojure.zip :as z]))
 
 (defn loc-path "Returns the locations leading to 'loc' from the root of 'loc'."
