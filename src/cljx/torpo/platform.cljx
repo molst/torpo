@@ -6,4 +6,6 @@
 
 (defn date [] #+clj (java.util.Date.) #+cljs (js/Date.))
 
+(defn time [] (.getTime (date)))
+
 (defn debuglog [message-str] #+clj (println message-str) #+cljs (.log js/console message-str))
