@@ -121,3 +121,6 @@
 
 (defn cycle-drop "Cycles the seq 's', drops 'n' items, and returns a seq of the same length as 's' with retained order from the cycle and drop operations."
   [n s] (drop n (take (+ n (count s)) (cycle s))))
+
+(defn re-all-found? "Returns true if all 'regexes' have at least one match in 's', otherwise false."
+  [regexes s] (empty? (filter nil? (map #(re-find % s) regexes))))

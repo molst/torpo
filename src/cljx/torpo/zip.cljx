@@ -1,8 +1,10 @@
 (ns torpo.zip
   (:require [clojure.zip :as z]))
 
+(defn reversed-loc-path [loc] (take-while #(not (nil? %)) (iterate z/up loc)))
+
 (defn loc-path "Returns the locations leading to 'loc' from the root of 'loc'."
-  [loc] (reverse (take-while #(not (nil? %)) (iterate z/up loc))))
+  [loc] (reverse (reversed-loc-path loc)))
 
 (defn root-loc "Returns the root location of 'loc'. If 'n' is supplied, returns the 'loc' 'n' positions from the root location on the path to 'loc'."
   [loc & [n]] (first (drop (or n 0) (loc-path loc))))
