@@ -18,10 +18,10 @@
 (defn deep-child-locs "Returns a seq of child locs recursively retrieved from 'loc'."
   [loc nodes-equal?] (take-while #(in-path? % loc nodes-equal?) (iterate z/next loc)))
 
-;;works, but not used
-#_(defn edit-deep-children "Recursively edits all 'loc's children using function 'f', which takes the node at the current child loc."
+(defn edit-deep-children "Recursively edits all 'loc's children using function 'f', which takes the node at the current child loc."
   [loc f nodes-equal?] (-> (take-while #(and % (in-path? % loc nodes-equal?))
                                        (iterate (fn [next-loc]
                                                   (let [nxt (z/next next-loc)]
                                                     (when (not (z/end? nxt)) (z/edit nxt f)))) loc)) last (in-path? loc nodes-equal?)))
+
 
