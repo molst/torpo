@@ -16,7 +16,7 @@
   [loc target-loc nodes-equal?] (first (drop-while #(and % (not (nodes-equal? (z/node %) (z/node target-loc)))) (iterate z/up loc))))
 
 (defn child-locs-r "Returns a seq of child locs recursively retrieved from 'loc'."
-  [loc nodes-equal?] (take-while #(in-path? % loc nodes-equal?) (iterate z/next loc)))
+  [loc nodes-equal?] (take-while #(and (not (z/end? %)) (in-path? % loc nodes-equal?)) (iterate z/next loc)))
 
 (defn edit-children-r "Recursively edits all 'loc's children using function 'f', which takes the node at the current child loc."
   [loc f nodes-equal?] (-> (take-while #(and % (in-path? % loc nodes-equal?))
