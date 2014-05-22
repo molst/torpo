@@ -20,7 +20,7 @@
   (str (if scheme (str scheme ":" (if (or (= scheme "http") (= scheme "https")) "//")) "")
        (or hostname "")
        (if port (str ":" port) "")
-       (when path (clojure.string/join "/" path))
+       (when path (clojure.string/join "/" (if (and hostname (not (empty? (first path)))) (cons "" path) path))) ;;the 'if' ensures there is always a '/' between a host and a path if both exist
        (if params (str "?" (clojure.string/join "&" (map #(str (name (key %)) "=" (val %)) (seq params)))) "")
        (if fragment (str "#" fragment) "")))
 
