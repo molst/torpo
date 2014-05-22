@@ -62,11 +62,11 @@
          (clojure.core/merge {:scheme scheme}
                              (when (or (= scheme "http") (= scheme "https"))
                                (let [[nada p2] (clojure.string/split path #"//") ;;just remove the double slash
-                                     [hostname-and-port & rest-path] (clojure.string/split p2 #"/")
+                                     [hostname-and-port & rest-path] (clojure.string/split p2 #"/") ;;rest path always considered relative to host
                                      [hostname port] (clojure.string/split hostname-and-port #":")]
                                  (clojure.core/merge {} (when (seq hostname) {:hostname hostname})
                                                      (when port {:port (pl/parse-int port)})
-                                                     (when {:path (vec (cons "/" rest-path))}))))) ;; cons "/" means path is considered absolute and in relation to the host root
+                                                     (when rest-path {:path (vec rest-path)})))))
          ;;if the first section in path is an empty string, that indicates a root path
          (clojure.core/merge {} (when (seq path) (when-let [path-seq (seq (clojure.string/split path #"/"))] {:path (vec path-seq)}))))
        (when param-map {:params param-map}) ;;query/params are usually only part of http and https requests, but might be used also in other circumnstances.
@@ -74,5 +74,6 @@
 
 (defn normalize "Transforms uri into an as common form as possible."
   [{:keys [hostname] :as uri}]
-  (if (and (seq hostname) (re-matches #"^www\." hostname))
-    (assoc uri :hostname (clojure.string/join "www." hostname))))
+  (if (and (seq hostname) (not (re-find #"^www\." hostname)))
+    (assoc uri :hostname (str "www." hostname))
+    uri))
