@@ -20,7 +20,7 @@
   (str (if scheme (str scheme ":" (if (or (= scheme "http") (= scheme "https")) "//")) "")
        (or hostname "")
        (if port (str ":" port) "")
-       (str (when hostname "/") (when path (clojure.string/join "/" path)))
+       (when path (clojure.string/join "/" path))
        (if params (str "?" (clojure.string/join "&" (map #(str (name (key %)) "=" (val %)) (seq params)))) "")
        (if fragment (str "#" fragment) "")))
 
@@ -62,11 +62,11 @@
          (clojure.core/merge {:scheme scheme}
                              (when (or (= scheme "http") (= scheme "https"))
                                (let [[nada p2] (clojure.string/split path #"//") ;;just remove the double slash
-                                     [hostname-and-port & rest-path] (clojure.string/split p2 #"/") ;;in case of http/https the path is always considered relative, because there is a host before
+                                     [hostname-and-port & rest-path] (clojure.string/split p2 #"/")
                                      [hostname port] (clojure.string/split hostname-and-port #":")]
                                  (clojure.core/merge {} (when (seq hostname) {:hostname hostname})
                                                      (when port {:port (pl/parse-int port)})
-                                                     (when (seq rest-path) {:path (vec rest-path)})))))
+                                                     (when {:path (vec (cons "/" rest-path))}))))) ;; cons "/" means path is considered absolute and in relation to the host root
          ;;if the first section in path is an empty string, that indicates a root path
          (clojure.core/merge {} (when (seq path) (when-let [path-seq (seq (clojure.string/split path #"/"))] {:path (vec path-seq)}))))
        (when param-map {:params param-map}) ;;query/params are usually only part of http and https requests, but might be used also in other circumnstances.
