@@ -71,3 +71,8 @@
          (clojure.core/merge {} (when (seq path) (when-let [path-seq (seq (clojure.string/split path #"/"))] {:path (vec path-seq)}))))
        (when param-map {:params param-map}) ;;query/params are usually only part of http and https requests, but might be used also in other circumnstances.
        (when fragment  {:fragment fragment}))))) ;;Fragment valid depending on parent document mime type. Should not participate in client/server communication.
+
+(defn normalize "Transforms uri into an as common form as possible."
+  [{:keys [hostname] :as uri}]
+  (if (and (seq hostname) (re-matches #"^www\." hostname))
+    (assoc uri :hostname (clojure.string/join "www." hostname))))
