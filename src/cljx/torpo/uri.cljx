@@ -84,6 +84,6 @@
 
 (defn normalize "Transforms uri into an as common form as possible."
   [{:keys [hostname] :as uri}]
-  (if (and (seq hostname) (not (re-find #"^www\." hostname)))
+  (if false #_(and (seq hostname) (not (re-find #"^www\." hostname)))
     (assoc uri :hostname (str "www." hostname))
     uri))
