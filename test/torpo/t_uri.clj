@@ -30,6 +30,8 @@
 (fact "get port" (uri/port (uri/parse fat-uri)) => 44)
 (fact "get defualt http port" (uri/port (uri/parse simple-http-uri)) => 80)
 (fact "parse javascript href" (uri/parse "javascript:void(0);") => {:scheme "javascript"}) ;;No support for parsing this scheme further yet
+(fact "parse ?& param" (uri/parse "http://www.blocket.se/vasterbotten?&ca=2sp=1&w=1") => {:hostname "www.blocket.se", :params {:ca "2sp", :w "1"}, :path ["vasterbotten"], :scheme "http"})
+(fact "parse strange params" (uri/parse "http://www.blocket.se/vasterbotten?&&a=&=3&w=4=5") => {:hostname "www.blocket.se", :params {:a nil, :w "4"}, :path ["vasterbotten"], :scheme "http"})
 
 (defn parse-uri-roundtrip [uri-str] (-> uri-str (uri/parse) (uri/make-uri-str)))
 (fact "parse roundtrip simle http uri"      (parse-uri-roundtrip simple-http-uri) => simple-http-uri)

@@ -1,5 +1,7 @@
 (ns torpo.uri
   (:refer-clojure :exclude [merge])
+  #+clj (:import (java.net URLEncoder URLDecoder))
+  #+cljs (:require-macros [clojure.core :refer [some->]])
   (:require [torpo.core :as core]
             [torpo.platform :as pl]))
 
@@ -35,6 +37,12 @@
     (-> (clojure.string/replace-first file-uri-str "file:///" "/")
         (clojure.string/replace-first "file://localhost/" "/"))))
 
+(defn decode
+  [string]
+  (some-> string str
+          #+clj (URLDecoder/decode "UTF-8")
+          #+cljs (js/decodeURIComponent)))
+
 (defn prepare-for-transmission "Does things to 'uri' that should only be done once before it is transmitted."
   [uri] (update-in uri [:params] (fn [old-val] (core/doto-vals pr-str (:params uri)))))
 
@@ -55,8 +63,10 @@
           [scheme remainder2] (when remainder1 (clojure.string/split remainder1 #":" 2))
           remainder3 (or remainder2 scheme) ;;if no remainder is found the only way this could be a valid uri is if the source str (now "scheme") represents a "protocol-relative" uri
           [path params] (when remainder3 (clojure.string/split remainder3 #"\?")) ;;the first section of path can be a hostname in case of "http" or "https"
-          param-map (when params (apply hash-map (apply concat (for [ppair (clojure.string/split params #"&")]
-                                                                 (let [[k v] (clojure.string/split ppair #"=")] [(keyword k) v])))))]
+          param-map (when params (apply hash-map (apply concat (for [ppair (clojure.string/split params #"&")
+                                                                     :let [[k v] (clojure.string/split ppair #"=")]
+                                                                     :when (and (seq k) (not (empty? ppair)))]
+                                                                 [(keyword k) v]))))]
       (clojure.core/merge
        (if (and scheme remainder2) ;;when we've got an explicit scheme...
          (clojure.core/merge {:scheme scheme}
