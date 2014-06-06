@@ -124,3 +124,6 @@
 
 (defn re-all-found? "Returns true if all 'regexes' have at least one match in 's', otherwise false."
   [regexes s] (empty? (filter nil? (map #(re-find % s) regexes))))
+
+(defn remove-from-string "Removes all parts of 'string' that matches 're'."
+  [s re] (clojure.string/join (filter #(not (empty? %)) (clojure.string/split s re))))
