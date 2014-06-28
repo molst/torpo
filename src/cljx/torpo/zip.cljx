@@ -24,3 +24,5 @@
                                                   (let [nxt (z/next next-loc)]
                                                     (when (not (z/end? nxt)) (z/edit nxt f)))) loc)) last (in-path? loc nodes-equal?)))
 
+(defn merge-into "Merges 'new-node' into 'loc' and returns a new 'loc', which is part of the updated zipper structure."
+  [loc new-node] (z/replace loc (merge (z/node loc) new-node)))
