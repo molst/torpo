@@ -14,6 +14,9 @@
         (for [old-item old-coll :when (not (some #(= (get-in % distinct-key-path :not-found-1) (get-in old-item distinct-key-path :not-found-2)) new-coll))]
           old-item)))
 
+(defn distinct-by "Returns a seq containing only the first of all items in 'coll' for which 'f' returns an equal value."
+  [f coll] (map first (vals (group-by f coll))))
+
 (defn distinct-into-by "Returns a seq containing all items in 'to', and all items in 'from' for which 'f' does not return equal values in both 'to' and 'from'."
   [f to from]
   (concat to
