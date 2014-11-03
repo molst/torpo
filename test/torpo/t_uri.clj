@@ -19,7 +19,7 @@
 (def simple-relative-path-with-slash "A")
 
 (fact "parse simple http uri" (uri/parse simple-http-uri) => {:hostname "hoist" :path ["A"] :scheme "http"})
-(fact "parse fragment from simple path" (uri/parse simple-path-with-frag {:scheme "http"}) => {:path ["" "A"] :fragment "frag" :scheme "http"})
+(fact "parse fragment from simple path" (uri/parse simple-path-with-frag) => {:path ["" "A"] :fragment "frag"})
 (fact "fat uri" (uri/parse fat-uri) => {:hostname "hoist" :path ["A"] :port 44 :scheme "http" :params {:p1 "v1" :p2 "v2"} :fragment "frag"})
 (fact "empty frag" (uri/parse empty-frag) => {})
 (fact "only frag" (uri/parse only-frag) => {:fragment "frag"})
@@ -32,7 +32,7 @@
 (fact "parse javascript href" (uri/parse "javascript:void(0);") => {:scheme "javascript"}) ;;No support for parsing this scheme further yet
 (fact "parse ?& param" (uri/parse "http://www.blocket.se/vasterbotten?&ca=2sp=1&w=1") => {:hostname "www.blocket.se", :params {:ca "2sp", :w "1"}, :path ["vasterbotten"], :scheme "http"})
 (fact "parse strange params" (uri/parse "http://www.blocket.se/vasterbotten?&&a=&=3&w=4=5") => {:hostname "www.blocket.se", :params {:a nil, :w "4"}, :path ["vasterbotten"], :scheme "http"})
-(fact "parse scheme-relative uri" (uri/parse "//www.blocket.se/vasterbotten" {:scheme "http"}) => {:hostname "www.blocket.se", :path ["vasterbotten"] :scheme "http"})
+(fact "parse scheme-relative uri" (uri/parse "//www.blocket.se/vasterbotten") => {:hostname "www.blocket.se", :path ["vasterbotten"]})
 
 (defn parse-uri-roundtrip [uri-str] (-> uri-str (uri/parse) (uri/make-uri-str)))
 (fact "parse roundtrip simple http uri"      (parse-uri-roundtrip simple-http-uri) => simple-http-uri)

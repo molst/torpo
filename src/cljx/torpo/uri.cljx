@@ -57,12 +57,11 @@
                                   (when-let [params (clojure.core/merge (:params merged-uri) (:params u))] {:params params})))
             all-uris)))
 
-(defn parse "Parses 'uri-str'. 'base-uri' can optionally be used to give contextual info to the parser about 'uri-str'. For example, if 'uri-str' doesn't have a scheme it can't be parsed without that information being added via 'base-uri'. 'base-uri' is on the same format as an uri returned by this parse function."
-  [uri-str & [{b-scheme :scheme :as base-uri}]]
+(defn parse [uri-str]
   (when uri-str
     (let [[scheme remainder0] (clojure.string/split uri-str #":" 2)
           no-scheme-part (or remainder0 scheme)
-          scheme (if (and remainder0 (> (count scheme) 0)) scheme b-scheme)
+          scheme (when remainder0 scheme)
           [no-frag-part fragment] (clojure.string/split no-scheme-part #"#")
           [path params] (when (seq no-frag-part) (clojure.string/split no-frag-part #"\?"))
           param-map (when params (apply hash-map (apply concat (for [ppair (clojure.string/split params #"&")
