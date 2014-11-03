@@ -57,30 +57,31 @@
                                   (when-let [params (clojure.core/merge (:params merged-uri) (:params u))] {:params params})))
             all-uris)))
 
-(defn parse [uri-str]
+(defn parse "Parses 'uri-str'. 'base-uri' can optionally be used to give contextual info to the parser about 'uri-str'. For example, if 'uri-str' doesn't have a scheme it can't be parsed without that information being added via 'base-uri'. 'base-uri' is on the same format as an uri returned by this parse function."
+  [uri-str & [{b-scheme :scheme :as base-uri}]]
   (when uri-str
-    (let [[remainder1 fragment] (clojure.string/split uri-str #"#")
-          [scheme remainder2] (when remainder1 (clojure.string/split remainder1 #":" 2))
-          remainder3 (or remainder2 scheme) ;;if no remainder is found the only way this could be a valid uri is if the source str (now "scheme") represents a "protocol-relative" uri
-          [path params] (when remainder3 (clojure.string/split remainder3 #"\?")) ;;the first section of path can be a hostname in case of "http" or "https"
+    (let [[scheme remainder0] (clojure.string/split uri-str #":" 2)
+          no-scheme-part (or remainder0 scheme)
+          scheme (if (and remainder0 (> (count scheme) 0)) scheme b-scheme)
+          [no-frag-part fragment] (clojure.string/split no-scheme-part #"#")
+          [path params] (when (seq no-frag-part) (clojure.string/split no-frag-part #"\?"))
           param-map (when params (apply hash-map (apply concat (for [ppair (clojure.string/split params #"&")
                                                                      :let [[k v] (clojure.string/split ppair #"=")]
                                                                      :when (and (seq k) (not (empty? ppair)))]
-                                                                 [(keyword k) v]))))]
+                                                                 [(keyword k) v]))))
+          [nada p2] (when path (clojure.string/split path #"//")) ;;remove any double slash
+          p3 (or p2 nada)
+          [hostname-and-port & rest-path] (when p2 (clojure.string/split p3 #"/")) ;;rest path always considered relative to host
+          [hostname port] (when p2 (clojure.string/split hostname-and-port #":"))
+          rest-path (if p2 rest-path (when p3 (clojure.string/split p3 #"/")))
+          rest-path (if (= [] rest-path) [""] rest-path)] ;;Special treatment of the case when path is just "/". Absolute path always represented by an initial empty string.
       (clojure.core/merge
-       (if (and scheme remainder2) ;;when we've got an explicit scheme...
-         (clojure.core/merge {:scheme scheme}
-                             (when (or (= scheme "http") (= scheme "https"))
-                               (let [[nada p2] (clojure.string/split path #"//") ;;just remove the double slash
-                                     [hostname-and-port & rest-path] (clojure.string/split p2 #"/") ;;rest path always considered relative to host
-                                     [hostname port] (clojure.string/split hostname-and-port #":")]
-                                 (clojure.core/merge {} (when (seq hostname) {:hostname hostname})
-                                                     (when port {:port (pl/parse-int port)})
-                                                     (when rest-path {:path (vec rest-path)})))))
-         ;;if the first section in path is an empty string, that indicates a root path
-         (clojure.core/merge {} (when (seq path) (when-let [path-seq (seq (clojure.string/split path #"/"))] {:path (vec path-seq)}))))
-       (when param-map {:params param-map}) ;;query/params are usually only part of http and https requests, but might be used also in other circumnstances.
-       (when fragment  {:fragment fragment}))))) ;;Fragment valid depending on parent document mime type. Should not participate in client/server communication.
+       (if fragment {:fragment fragment} {})
+       (when param-map {:params param-map})
+       (when (seq hostname) {:hostname hostname})
+       (when port {:port (pl/parse-int port)})
+       (when rest-path {:path (vec rest-path)})
+       (when scheme {:scheme scheme})))))
 
 (defn normalize "Transforms uri into an as common form as possible."
   [{:keys [hostname] :as uri}]
