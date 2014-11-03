@@ -19,10 +19,10 @@
       (str "/" (clojure.string/join "/" uri-sections) (when (seq uri-param-str) (str "?" uri-param-str))))))
 
 (defn make-uri-str [{:keys [scheme hostname port path params fragment]}]
-  (str (if scheme (str scheme ":" (if (or (= scheme "http") (= scheme "https")) "//")) "")
+  (str (when scheme (str scheme "://"))
        (or hostname "")
        (if port (str ":" port) "")
-       (when path (clojure.string/join "/" (if (and hostname (not (empty? (first path)))) (cons "" path) path))) ;;the 'if' ensures there is always a '/' between a host and a path if both exist
+       (when path (str (if scheme "/" "") (clojure.string/join "/" path)))
        (if params (str "?" (clojure.string/join "&" (map #(str (name (key %)) "=" (val %)) (seq params)))) "")
        (if fragment (str "#" fragment) "")))
 
