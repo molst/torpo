@@ -57,6 +57,13 @@
                                   (when-let [params (clojure.core/merge (:params merged-uri) (:params u))] {:params params})))
             all-uris)))
 
+(defn resolve-relative "Returns an absolute version of 'uri' resolved according to the official URI spec, based on the absolute 'base-uri'."
+  [base-uri uri]
+  (clojure.core/merge (clojure.core/merge base-uri uri)
+                      (when-let [npath (:path uri)]
+                        (let [opath (if-let [opath (:path base-uri)] (drop-last opath) [])]
+                          {:path (vec (concat opath npath))}))))
+
 (defn parse [uri-str]
   (when uri-str
     (let [[scheme remainder0] (clojure.string/split uri-str #":" 2)

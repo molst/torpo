@@ -8,8 +8,9 @@
 
 (def simple-http-uri "http://hoist/A")
 (def simple-path-with-frag "/A#frag")
-(def fat-uri  "http://hoist:44/A?p1=v1&p2=v2#frag")
-(def fat-uri2 "http://hoisu:66/B?q1=v1&q2=v2#fraggel")
+(def fat-uri  "http://hoist:44/A/B?p1=v1&p2=v2#frag")
+(def fat-uri2 "http://hoisu:66/C/D?q1=v1&q2=v2#fraggel")
+(def fat-uri-relative "C/D?q1=v1&q2=v2#fraggel")
 (def one-param "http://hoist:44/A?p1=v1#frag")
 (def empty-frag "#")
 (def only-frag "#frag")
@@ -20,7 +21,7 @@
 
 (fact "parse simple http uri" (uri/parse simple-http-uri) => {:hostname "hoist" :path ["A"] :scheme "http"})
 (fact "parse fragment from simple path" (uri/parse simple-path-with-frag) => {:path ["" "A"] :fragment "frag"})
-(fact "fat uri" (uri/parse fat-uri) => {:hostname "hoist" :path ["A"] :port 44 :scheme "http" :params {:p1 "v1" :p2 "v2"} :fragment "frag"})
+(fact "fat uri" (uri/parse fat-uri) => {:hostname "hoist" :path ["A" "B"] :port 44 :scheme "http" :params {:p1 "v1" :p2 "v2"} :fragment "frag"})
 (fact "empty frag" (uri/parse empty-frag) => {})
 (fact "only frag" (uri/parse only-frag) => {:fragment "frag"})
 (fact "only root" (uri/parse only-root) => {:path [""]})
@@ -41,7 +42,10 @@
 (fact "parse roundtrip javascript"           (parse-uri-roundtrip "javascript:void(0);") => "javascript:") ;;No support for parsing this scheme further yet
 
 (fact "merge" (uri/merge (uri/parse fat-uri) (uri/parse fat-uri2)) =>
-      {:fragment "fraggel" :hostname "hoisu" :params {:p1 "v1" :p2 "v2" :q1 "v1" :q2 "v2"} :path ["A" "B"] :port 66 :scheme "http"})
+      {:fragment "fraggel" :hostname "hoisu" :params {:p1 "v1" :p2 "v2" :q1 "v1" :q2 "v2"} :path ["A" "B" "C" "D"] :port 66 :scheme "http"})
+
+(fact "resolve-relative" (uri/resolve-relative (uri/parse fat-uri) (uri/parse fat-uri2-relative)) =>
+      {:fragment "fraggel" :hostname "hoist" :params {:q1 "v1" :q2 "v2"} :path ["A" "C" "D"] :port 44 :scheme "http"})
 
 (fact "simple file uri roundtrip" (parse-uri-roundtrip "file:///a/b") => "file:///a/b")
 (fact "make uri of only scheme and path" (uri/make-uri-str {:scheme "http", :path ["a" "b"]}) => "http:///a/b")
