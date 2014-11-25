@@ -44,10 +44,16 @@
 (fact "merge" (uri/merge (uri/parse fat-uri) (uri/parse fat-uri2)) =>
       {:fragment "fraggel" :hostname "hoisu" :params {:p1 "v1" :p2 "v2" :q1 "v1" :q2 "v2"} :path ["A" "B" "C" "D"] :port 66 :scheme "http"})
 
-(fact "resolve-relative" (uri/resolve-relative (uri/parse fat-uri) (uri/parse fat-uri2-relative)) =>
+(fact "resolve-relative" (uri/resolve-relative (uri/parse fat-uri) (uri/parse fat-uri-relative)) =>
       {:fragment "fraggel" :hostname "hoist" :params {:q1 "v1" :q2 "v2"} :path ["A" "C" "D"] :port 44 :scheme "http"})
 
 (fact "simple file uri roundtrip" (parse-uri-roundtrip "file:///a/b") => "file:///a/b")
 (fact "make uri of only scheme and path" (uri/make-uri-str {:scheme "http", :path ["a" "b"]}) => "http:///a/b")
 (fact "make uri of relative path" (uri/make-uri-str {:path ["A"]}) => "A")
 (fact "make uri of absolute path" (uri/make-uri-str {:path ["" "A"]}) => "/A")
+
+(fact "prepare for transmission preserves Clojure code for parsing with read-string"
+      (uri/prepare-for-transmission {:path ["p1" "p2"] :params {:a "1"}}) => {:params {:a "%221%22"}, :path ["p1" "p2"]})
+
+(fact "make-uri-str after prepare-for-transmission"
+      (uri/make-uri-str (uri/prepare-for-transmission {:path ["p1" "p2"] :params {:a "1"}})) => "p1/p2?a=%221%22")

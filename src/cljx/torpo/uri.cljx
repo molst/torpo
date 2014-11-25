@@ -23,7 +23,8 @@
        (or hostname "")
        (if port (str ":" port) "")
        (when path (str (if scheme "/" "") (clojure.string/join "/" path)))
-       (if params (str "?" (clojure.string/join "&" (map #(str (name (key %)) "=" (val %)) (seq params)))) "")
+       ;;all params must be strings so they can be consistently read back with read-string if they contain, for example, Clojure data
+       (if params (str "?" (clojure.string/join "&" (map (fn [[k v]] (str (name k) "=" v)) (seq params)))) "")
        (if fragment (str "#" fragment) "")))
 
 (defn get-last-path-component [uri-string]
@@ -37,14 +38,25 @@
     (-> (clojure.string/replace-first file-uri-str "file:///" "/")
         (clojure.string/replace-first "file://localhost/" "/"))))
 
-(defn decode
+(defn encode-str
+  [string]
+  (some-> string str
+          #+clj (URLEncoder/encode "UTF-8")
+          #+cljs (js/encodeURIComponent)
+          (.replace "+" "%20")))
+
+(defn decode-str
   [string]
   (some-> string str
           #+clj (URLDecoder/decode "UTF-8")
           #+cljs (js/decodeURIComponent)))
 
 (defn prepare-for-transmission "Does things to 'uri' that should only be done once before it is transmitted."
-  [uri] (update-in uri [:params] (fn [old-val] (core/doto-vals pr-str (:params uri)))))
+  [uri] (update-in uri [:params] (fn [old-val] (core/doto-vals #(let [s (pr-str %)]
+                                                                    (if (= :post (:request-method uri))
+                                                                      s
+                                                                      (encode-str s)))
+                                                               (:params uri)))))
 
 (defn port [uri] (or (:port uri) (case (:scheme uri) "http" 80 "https" 443)))
 
