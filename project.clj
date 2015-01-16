@@ -1,4 +1,4 @@
-(defproject torpo "0.3-SNAPSHOT"
+(defproject torpo "0.3"
   :description "A minimalistic helper library."
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
