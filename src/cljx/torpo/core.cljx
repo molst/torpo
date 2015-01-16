@@ -1,5 +1,6 @@
 (ns torpo.core
-  (:require [clojure.zip :as zip]))
+  (:require [clojure.zip :as zip]
+            [clojure.string :as string]))
 
 (defn first-if-seq "Yields first item in 'o' if 'o' is sequential, otherwise 'o' itself."
   [o] (if (sequential? o) (first o) o))
@@ -129,4 +130,4 @@
   [regexes s] (empty? (filter nil? (map #(re-find % s) regexes))))
 
 (defn remove-from-string "Removes all parts of 'string' that matches 're'."
-  [s re] (clojure.string/join (filter #(not (empty? %)) (clojure.string/split s re))))
+  [s re] (string/join (filter #(not (empty? %)) (clojure.string/split s re))))

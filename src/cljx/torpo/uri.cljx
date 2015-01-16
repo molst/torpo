@@ -3,11 +3,12 @@
   #+clj (:import (java.net URLEncoder URLDecoder))
   #+cljs (:require-macros [clojure.core :refer [some->]])
   (:require [torpo.core :as core]
-            [torpo.platform :as pl]))
+            [torpo.platform :as pl]
+            [clojure.string :as string]))
 
 (defn make-uri-params "Makes a uri-params string out of a map. Keys that are keywords will get the colon removed before converting it to a string."
   [params-map]
-  (clojure.string/join "&" (map #(str (core/full-name (first %)) "=" (second %)) (filter second (seq params-map)))))
+  (string/join "&" (map #(str (core/full-name (first %)) "=" (second %)) (filter second (seq params-map)))))
 
 (defn make-uri-path "Takes a seq of uri-section strings and makes a uri path string. If the last section is a map instead of a string, it will be treated as query key-value pairs to be stringified and appended."
   [& uri-sections]
@@ -16,27 +17,27 @@
           param-map (if (map? last-section) last-section nil)
           uri-param-str (make-uri-params param-map)
           uri-sections (filter #(and (not (nil? %)) (not (map? %))) uri-sections)] ;;remove nils and maps
-      (str "/" (clojure.string/join "/" uri-sections) (when (seq uri-param-str) (str "?" uri-param-str))))))
+      (str "/" (string/join "/" uri-sections) (when (seq uri-param-str) (str "?" uri-param-str))))))
 
 (defn make-uri-str [{:keys [scheme hostname port path params fragment]}]
   (str (when scheme (str scheme "://"))
        (or hostname "")
        (if port (str ":" port) "")
-       (when path (str (if scheme "/" "") (clojure.string/join "/" path)))
+       (when path (str (if scheme "/" "") (string/join "/" path)))
        ;;all params must be strings so they can be consistently read back with read-string if they contain, for example, Clojure data
-       (if params (str "?" (clojure.string/join "&" (map (fn [[k v]] (str (name k) "=" v)) (seq params)))) "")
+       (if params (str "?" (string/join "&" (map (fn [[k v]] (str (name k) "=" v)) (seq params)))) "")
        (if fragment (str "#" fragment) "")))
 
 (defn get-last-path-component [uri-string]
-  (when uri-string (last (clojure.string/split uri-string #"/"))))
+  (when uri-string (last (string/split uri-string #"/"))))
 
 (defn replace-last-path-component [uri-string last-component]
-  (when uri-string (clojure.string/join "/" (concat (butlast (clojure.string/split uri-string #"/")) `(~last-component)))))
+  (when uri-string (string/join "/" (concat (butlast (string/split uri-string #"/")) `(~last-component)))))
 
 (defn to-file-path [file-uri-str]
   (when (seq file-uri-str)
-    (-> (clojure.string/replace-first file-uri-str "file:///" "/")
-        (clojure.string/replace-first "file://localhost/" "/"))))
+    (-> (string/replace-first file-uri-str "file:///" "/")
+        (string/replace-first "file://localhost/" "/"))))
 
 (defn encode-str
   [string]
@@ -78,20 +79,20 @@
 
 (defn parse [uri-str]
   (when uri-str
-    (let [[scheme remainder0] (clojure.string/split uri-str #":" 2)
+    (let [[scheme remainder0] (string/split uri-str #":" 2)
           no-scheme-part (or remainder0 scheme)
           scheme (when remainder0 scheme)
-          [no-frag-part fragment] (clojure.string/split no-scheme-part #"#")
-          [path params] (when (seq no-frag-part) (clojure.string/split no-frag-part #"\?"))
-          param-map (when params (apply hash-map (apply concat (for [ppair (clojure.string/split params #"&")
-                                                                     :let [[k v] (clojure.string/split ppair #"=")]
+          [no-frag-part fragment] (string/split no-scheme-part #"#")
+          [path params] (when (seq no-frag-part) (string/split no-frag-part #"\?"))
+          param-map (when params (apply hash-map (apply concat (for [ppair (string/split params #"&")
+                                                                     :let [[k v] (string/split ppair #"=")]
                                                                      :when (and (seq k) (not (empty? ppair)))]
                                                                  [(keyword k) v]))))
-          [nada p2] (when path (clojure.string/split path #"//")) ;;remove any double slash
+          [nada p2] (when path (string/split path #"//")) ;;remove any double slash
           p3 (or p2 nada)
-          [hostname-and-port & rest-path] (when p2 (clojure.string/split p3 #"/")) ;;rest path always considered relative to host
-          [hostname port] (when p2 (clojure.string/split hostname-and-port #":"))
-          rest-path (if p2 rest-path (when p3 (clojure.string/split p3 #"/")))
+          [hostname-and-port & rest-path] (when p2 (string/split p3 #"/")) ;;rest path always considered relative to host
+          [hostname port] (when p2 (string/split hostname-and-port #":"))
+          rest-path (if p2 rest-path (when p3 (string/split p3 #"/")))
           rest-path (if (= [] rest-path) [""] rest-path)] ;;Special treatment of the case when path is just "/". Absolute path always represented by an initial empty string.
       (clojure.core/merge
        (if fragment {:fragment fragment} {})
