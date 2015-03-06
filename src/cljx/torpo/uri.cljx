@@ -20,10 +20,11 @@
       (str "/" (string/join "/" uri-sections) (when (seq uri-param-str) (str "?" uri-param-str))))))
 
 (defn make-uri-str [{:keys [scheme hostname port path params fragment]}]
+  (println "path: " path)
   (str (when scheme (str scheme "://"))
        (or hostname "")
        (if port (str ":" port) "")
-       (when path (str (if scheme "/" "") (string/join "/" path)))
+       (when path (str (if scheme "/" "") (if (string? path) path (string/join "/" path))))
        ;;all params must be strings so they can be consistently read back with read-string if they contain, for example, Clojure data
        (if params (str "?" (string/join "&" (map (fn [[k v]] (str (name k) "=" v)) (seq params)))) "")
        (if fragment (str "#" fragment) "")))
