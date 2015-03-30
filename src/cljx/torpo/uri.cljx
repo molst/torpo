@@ -19,8 +19,15 @@
           uri-sections (filter #(and (not (nil? %)) (not (map? %))) uri-sections)] ;;remove nils and maps
       (str "/" (string/join "/" uri-sections) (when (seq uri-param-str) (str "?" uri-param-str))))))
 
+(defn normalized-request-method [uri]
+  (or (when-let [rm (:request-method uri)] (string/upper-case (name rm)))
+      "GET"))
+
+(defn make-path-str [path] (string/join "/" path))
+(defn make-params-str [params] (string/join "&" (map (fn [[k v]] (str (name k) "=" v)) (seq params))))
+(defn make-path-params-str [path params] (str (make-path-str path) (when (seq params) (str "?" (make-path-str params)))))
+
 (defn make-uri-str [{:keys [scheme hostname port path params fragment]}]
-  (println "path: " path)
   (str (when scheme (str scheme "://"))
        (or hostname "")
        (if port (str ":" port) "")
@@ -68,7 +75,8 @@
     (reduce (fn [merged-uri u]
               (clojure.core/merge (clojure.core/merge merged-uri u) ;start with a basic overwriting merge at the top map level...
                                   (let [path (vec (concat (:path merged-uri) (:path u)))] (when (seq path) {:path path})) ;... then do the special uri-specific merge stuff for some of the keys
-                                  (when-let [params (clojure.core/merge (:params merged-uri) (:params u))] {:params params})))
+                                  (when-let [params  (clojure.core/merge (:params  merged-uri) (:params  u))] {:params  params})
+                                  (when-let [headers (clojure.core/merge (:headers merged-uri) (:headers u))] {:headers headers})))
             all-uris)))
 
 (defn resolve-relative "Returns an absolute version of 'uri' resolved according to the official URI spec, based on the absolute 'base-uri'."
