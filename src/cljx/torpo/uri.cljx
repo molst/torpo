@@ -25,7 +25,7 @@
 
 (defn make-path-str [path] (string/join "/" path))
 (defn make-params-str [params] (string/join "&" (map (fn [[k v]] (str (name k) "=" v)) (seq params))))
-(defn make-path-params-str [path params] (str (make-path-str path) (when (seq params) (str "?" (make-path-str params)))))
+(defn make-path-params-str [path params] (str (make-path-str path) (when (seq params) (str "?" (make-params-str params)))))
 
 (defn make-uri-str [{:keys [scheme hostname port path params fragment]}]
   (str (when scheme (str scheme "://"))
