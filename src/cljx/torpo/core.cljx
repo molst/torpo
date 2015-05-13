@@ -131,3 +131,10 @@
 
 (defn remove-from-string "Removes all parts of 'string' that matches 're'."
   [s re] (string/join (filter #(not (empty? %)) (clojure.string/split s re))))
+
+(defn remove-adjacent-duplicates "Removes adjacent duplicates of 'val' in seq 's'."
+  [val s]
+  (loop [src s trg []]
+    (if (empty? src) trg
+        (recur (if (= (first src) val) (drop-while #(= % val) src) (rest src))
+               (conj trg (first src))))))
