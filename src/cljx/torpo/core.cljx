@@ -138,3 +138,16 @@
     (if (empty? src) trg
         (recur (if (= (first src) val) (drop-while #(= % val) src) (rest src))
                (conj trg (first src))))))
+
+(defn merge-wipe-nil "Merges and removes keys with nil values."
+  [& maps]
+  (reduce (fn [result-map next-map]
+            (merge result-map
+             (reduce (fn [res-map [k v]]
+                       (if v
+                         (assoc res-map k v)
+                         (dissoc res-map k)))
+                     {}
+                     (seq next-map))))
+          {}
+          maps))
